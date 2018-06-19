@@ -20,12 +20,15 @@ class Sentry(object):
         while b != hello:
             b += self._serial.read_all()
 
+
         self.code = ok
         self.x_rate = 5000
         self.y_rate = 4000
         self.x_acc  = 1000
         self.y_acc  = 1000
 
+        self._x = 0
+        self._y = 0
         self._feed_rate = 9000
 
 
@@ -34,7 +37,13 @@ class Sentry(object):
 
 
     def jog(self, x, y):
-        self.send(f'$J=G91 G21 X{x} Y{y} F{self._feed_rate}')
+        if abs(self._y + y) < 10: 
+            self._x += x
+            self._y += y
+
+            self.send(f'$J=G90 G21 X{self._x} Y{self._y} F{self._feed_rate}')
+        else:
+            print('Woops: %i, %i', (self._x + x, self._y + y))
 
 
     def send(self, cmd):
@@ -95,7 +104,7 @@ if __name__ == '__main__':
     if sys.version_info < (3, 6):
         sys.exit('Python 3.6 or later is required.\n')
 
-    # sentry = Sentry('/dev/ttyACM0', 115200)
+    sentry = Sentry('/dev/ttyACM0', 115200)
 
     face_casc_path = 'haarcascades/haarcascade_frontalface_default.xml'
     eye_casc_path = 'haarcascades/haarcascade_eye.xml'
@@ -108,7 +117,7 @@ if __name__ == '__main__':
     left_eye_casc = cv2.CascadeClassifier(left_eye_casc_path)
     right_eye_casc = cv2.CascadeClassifier(right_eye_casc_path)
 
-    video_capture = cv2.VideoCapture(0)
+    video_capture = cv2.VideoCapture(1)
 
     cw, ch = video_capture.get(cv2.CAP_PROP_FRAME_WIDTH), video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
     print(f'Resolution: {cw}x{ch}')
@@ -170,8 +179,8 @@ if __name__ == '__main__':
 
 
             if jx != 0 or jy != 0:
-                print(jx, jy)
-                # sentry.jog(*map(int, (jx*k, jy*k)))
+                # print(jx, jy)
+                sentry.jog(*map(int, (jx*k, jy*k)))
 
 
         key = cv2.waitKey(1) & 0xFF
