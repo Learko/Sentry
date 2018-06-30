@@ -101,89 +101,96 @@ class Sentry(object):
 
 
 if __name__ == '__main__':
-    if sys.version_info < (3, 6):
-        sys.exit('Python 3.6 or later is required.\n')
-
-    sentry = Sentry('/dev/ttyACM0', 115200)
-
-    face_casc_path = 'haarcascades/haarcascade_frontalface_default.xml'
-    eye_casc_path = 'haarcascades/haarcascade_eye.xml'
-    left_eye_casc_path = 'haarcascades/haarcascade_lefteye_2splits.xml'
-    right_eye_casc_path = 'haarcascades/haarcascade_righteye_2splits.xml'
-
-
-    face_casc = cv2.CascadeClassifier(face_casc_path)
-    eye_casc = cv2.CascadeClassifier(eye_casc_path)
-    left_eye_casc = cv2.CascadeClassifier(left_eye_casc_path)
-    right_eye_casc = cv2.CascadeClassifier(right_eye_casc_path)
-
-    video_capture = cv2.VideoCapture(1)
-
-    cw, ch = video_capture.get(cv2.CAP_PROP_FRAME_WIDTH), video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    print(f'Resolution: {cw}x{ch}')
+    # sentry = Sentry('/dev/ttyACM0', 115200)
 
     while True:
-        ret, frame = video_capture.read()
+        *_, x, y = map(int, input().split())
+        print(x, y)
+        # sentry.jog(x, y)
 
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # if sys.version_info < (3, 6):
+    #     sys.exit('Python 3.6 or later is required.\n')
 
-        faces = face_casc.detectMultiScale(
-            gray,
-            scaleFactor=1.3,
-            minNeighbors=5,
-            minSize=(40, 40),
-            flags=cv2.CASCADE_SCALE_IMAGE
-        )
+    # # sentry = Sentry('/dev/ttyACM0', 115200)
 
-        confirmed_faces = set()
+    # face_casc_path = 'haarcascades/haarcascade_frontalface_default.xml'
+    # eye_casc_path = 'haarcascades/haarcascade_eye.xml'
+    # left_eye_casc_path = 'haarcascades/haarcascade_lefteye_2splits.xml'
+    # right_eye_casc_path = 'haarcascades/haarcascade_righteye_2splits.xml'
 
-        for (x, y, w, h) in faces:
-            roi_gray = gray[y:y+h, x:x+w]
-            roi_frame = frame[y:y+h, x:x+w]
 
-            eyes = right_eye_casc.detectMultiScale(
-                roi_gray
-            )
+    # face_casc = cv2.CascadeClassifier(face_casc_path)
+    # eye_casc = cv2.CascadeClassifier(eye_casc_path)
+    # left_eye_casc = cv2.CascadeClassifier(left_eye_casc_path)
+    # right_eye_casc = cv2.CascadeClassifier(right_eye_casc_path)
 
-            if len(eyes) >= 2:
-                for (ex, ey, ew, eh) in eyes:
-                    cv2.rectangle(roi_frame, (ex, ey), (ex+ew, ey+eh), (255, 0, 0), 2)
+    # video_capture = cv2.VideoCapture(0)
+
+    # cw, ch = video_capture.get(cv2.CAP_PROP_FRAME_WIDTH), video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    # print(f'Resolution: {cw}x{ch}')
+
+    # while True:
+    #     ret, frame = video_capture.read()
+
+    #     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    #     faces = face_casc.detectMultiScale(
+    #         gray,
+    #         scaleFactor=1.3,
+    #         minNeighbors=5,
+    #         minSize=(40, 40),
+    #         flags=cv2.CASCADE_SCALE_IMAGE
+    #     )
+
+    #     confirmed_faces = set()
+
+    #     for (x, y, w, h) in faces:
+    #         roi_gray = gray[y:y+h, x:x+w]
+    #         roi_frame = frame[y:y+h, x:x+w]
+
+    #         eyes = right_eye_casc.detectMultiScale(
+    #             roi_gray
+    #         )
+
+    #         if len(eyes) >= 2:
+    #             for (ex, ey, ew, eh) in eyes:
+    #                 cv2.rectangle(roi_frame, (ex, ey), (ex+ew, ey+eh), (255, 0, 0), 2)
                 
-                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+    #             cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
-                confirmed_faces.add((x, y, w, h))
-
-
-        cv2.imshow('Video', frame)
+    #             confirmed_faces.add((x, y, w, h))
 
 
-        if len(confirmed_faces) > 0:
-            x, y, w, h = min(faces, key=lambda f: (w/2 - f[0])**2 + (h/2 - f[1])**2) # closest to center
-            # x, y, w, h = max(confirmed_faces, key=lambda f: f[2]*f[3]) # biggest
-
-            x += w/2
-            y += h/2
-
-            shift_x = cw/2 - x
-            shift_y = ch/2 - y
-
-            k = 1.9
-
-            jx = 0
-            jy = 0
-
-            if abs(shift_x) > 20:
-                jx = round(degrees(atan(2 * shift_x * tan(radians(65))/cw)) / 30, 4)
-            if abs(shift_y) > 22:
-                jy = round(degrees(atan(2 * shift_y * tan(radians(65))/ch)) / 40, 4)
+    #     cv2.imshow('Video', frame)
 
 
-            if jx != 0 or jy != 0:
-                # print(jx, jy)
-                sentry.jog(*map(int, (jx*k, jy*k)))
+    #     if len(confirmed_faces) > 0:
+    #         x, y, w, h = min(faces, key=lambda f: (w/2 - f[0])**2 + (h/2 - f[1])**2) # closest to center
+    #         # x, y, w, h = max(confirmed_faces, key=lambda f: f[2]*f[3]) # biggest
+
+    #         x += w/2
+    #         y += h/2
+
+    #         shift_x = cw/2 - x
+    #         shift_y = ch/2 - y
+
+    #         k = 1.9
+
+    #         jx = 0
+    #         jy = 0
+
+    #         if abs(shift_x) > 20:
+    #             jx = round(degrees(atan(2 * shift_x * tan(radians(65))/cw)) / 30, 4)
+    #         if abs(shift_y) > 22:
+    #             jy = round(degrees(atan(2 * shift_y * tan(radians(65))/ch)) / 40, 4)
 
 
-        key = cv2.waitKey(1) & 0xFF
+    #         if jx != 0 or jy != 0:
+    #             print(jx, jy)
+    #             # sentry.jog(*map(int, (jx*k, jy*k)))
 
-        if key == 27:
-            quit()
+
+    #     key = cv2.waitKey(1) & 0xFF
+
+    #     if key == 27:
+    #         quit()
